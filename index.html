@@ -1,47 +1,63 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Flappy Cow</title>
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       overflow: hidden;
+      height: 100%;
       background: #87CEEB;
+      touch-action: manipulation;
     }
     canvas {
       display: block;
-      margin: 0 auto;
-      background: url('https://i.imgur.com/1cW3M1c.png'); /* barn background */
+      margin: auto;
+      background: url('https://i.imgur.com/1cW3M1c.png');
       background-size: cover;
+      width: 100vw;
+      height: 100vh;
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="480" height="640"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <audio id="bgm" src="https://www.fesliyanstudios.com/play-mp3/387" loop></audio>
   <audio id="moo" src="https://www.soundjay.com/animals/cow-moo1.mp3"></audio>
   <script>
     const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');const cowImg = new Image();
-cowImg.src = 'https://i.imgur.com/MPD4ntT.png'; // cartoon cow
+    const ctx = canvas.getContext('2d');function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+const cowImg = new Image();
+cowImg.src = 'https://i.imgur.com/MPD4ntT.png';
 
 let cow = { x: 50, y: 200, width: 40, height: 40, gravity: 0.6, lift: -12, velocity: 0 };
 
 let pipes = [];
 let score = 0;
 let gameOver = false;
-const gap = 150;
+const gap = 200;
 
 const mooSound = document.getElementById('moo');
 const bgm = document.getElementById('bgm');
 bgm.volume = 0.3;
 bgm.play();
 
-document.addEventListener('keydown', () => {
+function flap() {
   if (!gameOver) cow.velocity = cow.lift;
   else location.reload();
-});
+}
+
+document.addEventListener('keydown', flap);
+document.addEventListener('touchstart', flap);
 
 function drawCow() {
   ctx.drawImage(cowImg, cow.x, cow.y, cow.width, cow.height);
@@ -90,12 +106,12 @@ function endGame() {
   gameOver = true;
   mooSound.play();
   bgm.pause();
-  ctx.font = '40px Comic Sans MS';
+  ctx.font = 'bold 5vw Comic Sans MS';
   ctx.fillStyle = 'red';
-  ctx.fillText('MOO! Game Over!', 90, canvas.height / 2);
-  ctx.fillText(`Score: ${score}`, 160, canvas.height / 2 + 50);
-  ctx.font = '20px Comic Sans MS';
-  ctx.fillText('Press any key to restart', 130, canvas.height / 2 + 100);
+  ctx.fillText('MOO! Game Over!', canvas.width * 0.2, canvas.height / 2);
+  ctx.fillText(`Score: ${score}`, canvas.width * 0.35, canvas.height / 2 + 60);
+  ctx.font = '3vw Comic Sans MS';
+  ctx.fillText('Tap or press any key to restart', canvas.width * 0.18, canvas.height / 2 + 120);
 }
 
 let frames = 0;
@@ -104,7 +120,7 @@ function gameLoop() {
   drawCow();
   update();
 
-  ctx.font = '20px Comic Sans MS';
+  ctx.font = 'bold 3vw Comic Sans MS';
   ctx.fillStyle = 'white';
   ctx.fillText(`Score: ${score}`, 10, 30);
 
