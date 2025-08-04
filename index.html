@@ -1,203 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" width="width=device-width, initial-scale=1.0">
-    <title>Clone Cow</title>
-    <style>
-        /* styles.css */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #87CEEB;
-        }
-
-        #gameCanvas {
-            border: 2px solid #000;
-            background-color: #F0F8FF;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Cow</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #87CEEB;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: url('https://i.imgur.com/1cW3M1c.png'); /* barn background */
+      background-size: cover;
+    }
+  </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <audio id="mooSound" src="moo.mp3"></audio>
-    <audio id="backgroundMusic" src="background-music.mp3" loop></audio>
-    <script>
-        // game.js
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const mooSound = document.getElementById('mooSound');
-        const backgroundMusic = document.getElementById('backgroundMusic');
+  <canvas id="gameCanvas" width="480" height="640"></canvas>
+  <audio id="bgm" src="https://www.fesliyanstudios.com/play-mp3/387" loop></audio>
+  <audio id="moo" src="https://www.soundjay.com/animals/cow-moo1.mp3"></audio>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');const cowImg = new Image();
+cowImg.src = 'https://i.imgur.com/MPD4ntT.png'; // cartoon cow
 
-        // Game variables
-        let cow = {
-            x: 100,
-            y: canvas.height / 2,
-            width: 40,
-            height: 30,
-            velocity: 0,
-            gravity: 0.2,
-            lift: -8
-        };
-        let pipes = [];
-        let score = 0;
-        let gameOver = false;
-        let frameCount = 0;
-        const pipeWidth = 50;
-        const pipeGap = 200;
-        const pipeSpeed = 2;
-        const pipeFrequency = 120;
+let cow = { x: 50, y: 200, width: 40, height: 40, gravity: 0.6, lift: -12, velocity: 0 };
 
-        // Start background music
-        backgroundMusic.play().catch(error => {
-            console.log("Background music failed to play:", error);
-        });
+let pipes = [];
+let score = 0;
+let gameOver = false;
+const gap = 150;
 
-        // Event listeners
-        document.addEventListener('keydown', flap);
-        canvas.addEventListener('click', flap);
+const mooSound = document.getElementById('moo');
+const bgm = document.getElementById('bgm');
+bgm.volume = 0.3;
+bgm.play();
 
-        function flap() {
-            if (!gameOver) {
-                cow.velocity = cow.lift;
-            } else {
-                // Reset game
-                cow.y = canvas.height / 2;
-                cow.velocity = 0;
-                pipes = [];
-                score = 0;
-                gameOver = false;
-                backgroundMusic.play().catch(error => {
-                    console.log("Background music failed to play on restart:", error);
-                });
-            }
-        }
+document.addEventListener('keydown', () => {
+  if (!gameOver) cow.velocity = cow.lift;
+  else location.reload();
+});
 
-        // Generate new pipe
-        function createPipe() {
-            const minHeight = 100;
-            const maxHeight = canvas.height - pipeGap - minHeight;
-            const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-            pipes.push({
-                x: canvas.width,
-                topHeight: topHeight,
-                bottomHeight: canvas.height - topHeight - pipeGap,
-                scored: false
-            });
-        }
+function drawCow() {
+  ctx.drawImage(cowImg, cow.x, cow.y, cow.width, cow.height);
+}
 
-        // Check collision
-        function checkCollision() {
-            if (cow.y < 0 || cow.y + cow.height > canvas.height) {
-                mooSound.play().catch(error => {
-                    console.log("Moo sound failed to play:", error);
-                });
-                return true;
-            }
-            for (let pipe of pipes) {
-                if (
-                    cow.x + cow.width > pipe.x &&
-                    cow.x < pipe.x + pipeWidth &&
-                    (cow.y < pipe.topHeight || cow.y + cow.height > canvas.height - pipe.bottomHeight)
-                ) {
-                    mooSound.play().catch(error => {
-                        console.log("Moo sound failed to play:", error);
-                    });
-                    return true;
-                }
-            }
-            return false;
-        }
+function drawPipe(pipe) {
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+  ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height - pipe.bottom);
+}
 
-        // Draw cow (white rectangle with black spots)
-        function drawCow() {
-            // Body
-            ctx.fillStyle = 'white';
-            ctx.fillRect(cow.x, cow.y, cow.width, cow.height);
+function update() {
+  if (gameOver) return;
 
-            // Black spots
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(cow.x + 10, cow.y + 10, 3, 0, Math.PI * 2);
-            ctx.arc(cow.x + 30, cow.y + 20, 4, 0, Math.PI * 2);
-            ctx.arc(cow.x + 20, cow.y + 15, 2, 0, Math.PI * 2);
-            ctx.fill();
+  cow.velocity += cow.gravity;
+  cow.y += cow.velocity;
 
-            // Simple face (eyes and nose)
-            ctx.fillStyle = 'black';
-            ctx.fillRect(cow.x + 30, cow.y + 5, 4, 4);
-            ctx.fillRect(cow.x + 20, cow.y + 5, 4, 4);
-            ctx.fillRect(cow.x + 25, cow.y + 15, 6, 4);
-        }
+  if (cow.y + cow.height > canvas.height || cow.y < 0) endGame();
 
-        // Game loop
-        function gameLoop() {
-            if (gameOver) {
-                ctx.fillStyle = 'red';
-                ctx.font = '40px Arial';
-                ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
-                ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 50);
-                ctx.fillText('Click to Restart', canvas.width / 2 - 120, canvas.height / 2 + 100);
-                return;
-            }
+  if (frames % 90 === 0) {
+    let top = Math.random() * (canvas.height - gap - 100) + 20;
+    let bottom = top + gap;
+    pipes.push({ x: canvas.width, width: 50, top: top, bottom: bottom });
+  }
 
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+  pipes.forEach((pipe, i) => {
+    pipe.x -= 2;
+    drawPipe(pipe);
 
-            // Update cow
-            cow.velocity += cow.gravity;
-            cow.y += cow.velocity;
+    if (
+      cow.x < pipe.x + pipe.width &&
+      cow.x + cow.width > pipe.x &&
+      (cow.y < pipe.top || cow.y + cow.height > pipe.bottom)
+    ) {
+      endGame();
+    }
 
-            // Draw cow
-            drawCow();
+    if (pipe.x + pipe.width < 0) {
+      pipes.splice(i, 1);
+      score++;
+    }
+  });
+}
 
-            // Generate pipes
-            if (frameCount % pipeFrequency === 0) {
-                createPipe();
-            }
+function endGame() {
+  gameOver = true;
+  mooSound.play();
+  bgm.pause();
+  ctx.font = '40px Comic Sans MS';
+  ctx.fillStyle = 'red';
+  ctx.fillText('MOO! Game Over!', 90, canvas.height / 2);
+  ctx.fillText(`Score: ${score}`, 160, canvas.height / 2 + 50);
+  ctx.font = '20px Comic Sans MS';
+  ctx.fillText('Press any key to restart', 130, canvas.height / 2 + 100);
+}
 
-            // Update and draw pipes
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                let pipe = pipes[i];
-                pipe.x -= pipeSpeed;
+let frames = 0;
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCow();
+  update();
 
-                // Draw pipes
-                ctx.fillStyle = 'green';
-                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-                ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight, pipeWidth, pipe.bottomHeight);
+  ctx.font = '20px Comic Sans MS';
+  ctx.fillStyle = 'white';
+  ctx.fillText(`Score: ${score}`, 10, 30);
 
-                // Score when cow passes pipe
-                if (!pipe.scored && cow.x > pipe.x + pipeWidth) {
-                    score++;
-                    pipe.scored = true;
-                }
+  frames++;
+  requestAnimationFrame(gameLoop);
+}
 
-                // Remove off-screen pipes
-                if (pipe.x + pipeWidth < 0) {
-                    pipes.splice(i, 1);
-                }
-            }
+cowImg.onload = () => {
+  gameLoop();
+};
 
-            // Check for collisions
-            if (checkCollision()) {
-                gameOver = true;
-                backgroundMusic.pause(); // Pause music on game over
-            }
-
-            // Draw score
-            ctx.fillStyle = 'black';
-            ctx.font = '30px Arial';
-            ctx.fillText(`Score: ${score}`, 20, 50);
-
-            frameCount++;
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Start game
-        gameLoop();
-    </script>
+  </script>
 </body>
 </html>
