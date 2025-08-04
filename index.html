@@ -15,7 +15,7 @@
     canvas {
       display: block;
       margin: auto;
-      background: url('https://i.imgur.com/1cW3M1c.png');
+      background: url('https://images.unsplash.com/photo-1570130691143-7b1dbf727f94?ixlib=rb-4.0.3&auto=format&fit=crop&w=480&q=80');
       background-size: cover;
       width: 100vw;
       height: 100vh;
@@ -37,14 +37,14 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 const cowImg = new Image();
-cowImg.src = 'https://i.imgur.com/MPD4ntT.png';
+cowImg.src = 'https://cdn-icons-png.flaticon.com/512/616/616408.png'; // fixed cow icon
 
-let cow = { x: 50, y: 200, width: 40, height: 40, gravity: 0.6, lift: -12, velocity: 0 };
+let cow = { x: 50, y: 200, width: 60, height: 60, gravity: 0.5, lift: -10, velocity: 0 };
 
 let pipes = [];
 let score = 0;
 let gameOver = false;
-const gap = 200;
+const gap = 250;
 
 const mooSound = document.getElementById('moo');
 const bgm = document.getElementById('bgm');
@@ -78,13 +78,13 @@ function update() {
   if (cow.y + cow.height > canvas.height || cow.y < 0) endGame();
 
   if (frames % 90 === 0) {
-    let top = Math.random() * (canvas.height - gap - 100) + 20;
+    let top = Math.random() * (canvas.height - gap - 200) + 50;
     let bottom = top + gap;
-    pipes.push({ x: canvas.width, width: 50, top: top, bottom: bottom });
+    pipes.push({ x: canvas.width, width: 80, top: top, bottom: bottom });
   }
 
   pipes.forEach((pipe, i) => {
-    pipe.x -= 2;
+    pipe.x -= 3;
     drawPipe(pipe);
 
     if (
@@ -122,7 +122,7 @@ function gameLoop() {
 
   ctx.font = 'bold 3vw Comic Sans MS';
   ctx.fillStyle = 'white';
-  ctx.fillText(`Score: ${score}`, 10, 30);
+  ctx.fillText(`Score: ${score}`, 10, 40);
 
   frames++;
   requestAnimationFrame(gameLoop);
